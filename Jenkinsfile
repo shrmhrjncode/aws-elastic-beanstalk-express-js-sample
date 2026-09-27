@@ -9,7 +9,7 @@ pipeline {
                 -e DOCKER_HOST=tcp://172.18.0.2:2376
                 -e DOCKER_CERT_PATH=/certs/client
                 -e DOCKER_TLS_VERIFY=1
-                -v jenkins-docker-compose_dind-certs:/certs/client:ro
+                -v /certs/client:/certs/client:ro
             '''
 
             reuseNode true
