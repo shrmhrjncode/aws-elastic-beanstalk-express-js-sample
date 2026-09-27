@@ -17,6 +17,10 @@ pipeline {
     }
 
     environment {
+        DOCKER_HOST = 'tcp://172.18.0.2:2376'
+        DOCKER_CERT_PATH = '/certs/client'
+        DOCKER_TLS_VERIFY = '1'
+
         IMAGE_NAME = 'aws-node-app'
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
@@ -50,6 +54,10 @@ pipeline {
 
                 sh '''
                     docker run --rm \
+                      -e DOCKER_HOST=tcp://172.18.0.2:2376 \
+                      -e DOCKER_CERT_PATH=/certs/client \
+                      -e DOCKER_TLS_VERIFY=1 \
+                      -v jenkins-docker-compose_dind-certs:/certs/client:ro \
                       aquasec/trivy:latest \
                       image \
                       --severity HIGH,CRITICAL \
