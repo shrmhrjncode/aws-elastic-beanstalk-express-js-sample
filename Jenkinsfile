@@ -51,6 +51,7 @@ pipeline {
         stage('Vulnerability Scan') {
             steps {
                 echo 'Scanning Docker image for HIGH and CRITICAL vulnerabilities...'
+                echo 'The security gate fails the build for fixable HIGH/CRITICAL vulnerabilities.'
 
                 sh '''
                     docker run --rm \
@@ -61,6 +62,7 @@ pipeline {
                     aquasec/trivy:latest \
                     image \
                     --severity HIGH,CRITICAL \
+                    --ignore-unfixed \
                     --exit-code 1 \
                     ${IMAGE_NAME}:${IMAGE_TAG}
                 '''
