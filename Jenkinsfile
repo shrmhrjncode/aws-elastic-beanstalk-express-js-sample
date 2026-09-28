@@ -22,6 +22,7 @@ pipeline {
         DOCKER_TLS_VERIFY = '1'
 
         IMAGE_NAME = 'aws-node-app'
+        DOCKERHUB_IMAGE = 'shrmhrjn99/assessment2'
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
@@ -45,6 +46,7 @@ pipeline {
             steps {
                 echo 'Building application Docker image...'
                 sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
+                sh 'docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKERHUB_IMAGE}:${IMAGE_TAG}'
             }
         }
 
@@ -71,8 +73,27 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                echo 'Docker image passed the vulnerability scan.'
-                echo 'Registry push will be configured after Jenkins credentials are added.'
+                echo 'Logging in to Docker Hub and pushing the image...'
+
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKERHUB_USERNAME',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        set +x
+
+                        echo "$DOCKERHUB_TOKEN" | docker login \
+                            --username "$DOCKERHUB_USERNAME" \
+                            --password-stdin
+
+                        docker push ${DOCKERHUB_IMAGE}:${IMAGE_TAG}
+
+                        docker logout
+                    '''
+                }
             }
         }
     }
@@ -84,11 +105,11 @@ pipeline {
         }
 
         success {
-            echo 'CI pipeline completed successfully.'
+            echo 'CI/CD pipeline completed successfully.'
         }
 
         failure {
-            echo 'CI pipeline failed. Check the stage logs above.'
+            echo 'CI/CD pipeline failed. Check the stage logs above.'
         }
     }
 }
